@@ -24,6 +24,7 @@ function Navbar() {
         <div className={`navbar ${show && "navbar__black"}`}>
             <div className="nav__contents">
                 <img 
+                    onClick={ () => history.push('/')}
                     className="nav__logo"
                     src="https://netflix-clone-fcd36.web.app/netflix-logo.png" 
                     alt="" />
@@ -38,7 +39,7 @@ function Navbar() {
                 <img 
                     onClick={ () => history.push('/profile')}
                     className="nav__avatar"
-                    src="https://www.kindpng.com/picc/m/78-785827_user-profile-avatar-login-account-male-user-icon.png"
+                    src="http://blogs.studentlife.utoronto.ca/lifeatuoft/files/2015/02/FullSizeRender.jpg"
                     alt="" />
 
             </div>
