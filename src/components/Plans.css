@@ -21,4 +21,8 @@
     cursor: pointer;
 }
 
+.plans__disabled>button {
+    background-color: gray !important;
+}
+
 .plans__info {}

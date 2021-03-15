@@ -2,11 +2,32 @@ import React, { useEffect, useState } from 'react';
 import './Plans.css';
 import db from '../firebase';
 import { useSelector } from 'react-redux';
+import { selectUser } from '../features/userSlice';
 import { loadStripe } from '@stripe/stripe-js'; 
 
 function Plans() {
     const [products, setProducts] = useState([]);
     const user = useSelector(selectUser);
+    const [subscription, setSubscription] = useState(null);
+
+    useEffect( () => {
+        db.collection('customers')
+        .doc(user.uid)
+        .collection('subscriptions')
+        .get()
+        .then(querySnapshot => {
+            querySnapshot.forEach( async subscription => {
+                setSubscription({
+                    role: subscription.data().role,
+                    current_period_end: subscription.data().current_period_end.seconds,
+                    current_period_start: subscription.data().current_period_start.seconds
+                    
+                })
+            })
+        })
+
+    }, [user.uid]);
+
 
     useEffect( () => {
         db.collection('products')
@@ -52,31 +73,39 @@ function Plans() {
                 if (sessionId) {
 
                     // Init Stripe
-                    const stripe = await loadStripe()
+                    const stripe = await loadStripe('pk_test_51IUc2oChpxrnV9mE2mdtwnCn6xREuDhWEnGLCSZbGq87fJP8jLPuLLK5H7qrW0l0YBpB98GHlcweCe5VofinbnBp00w7w9ceQ9')
+                    stripe.redirectToCheckout({ sessionId });
                 }
             })
 
     }
 
-    console.log('Products: ',products);
-
     return (
         <div className="plans">
+            <br/>
+            {subscription && <p>Renewal date: 
+                { new Date(subscription?.current_period_end * 1000).toLocaleDateString()}</p> }
+            
             {Object.entries(products).map(
                 ([productId, productData]) => {
                     // TODO add some logic to check if the users 
                     // subscription is active
+                    const isCurrentPackage = productData.name?.toLowerCase().includes(
+                        subscription?.role
+                    )
+
                     return (
-                        <div key={productId} className="plans__plan">
+                        <div key={productId} className={`${isCurrentPackage && "plans__disabled"} plans__plan`}>
                             <div className="plans__info">
                                 <h5>{productData.name}</h5>
                                 <h6>{productData.description}</h6>
                             </div>
                             <button 
-                                onClick={ () => loadCheckout(
+                                onClick={ () => 
+                                    !isCurrentPackage && loadCheckout(
                                     productData.prices.priceId
                                 )}>
-                                Subscribe
+                                {isCurrentPackage ? 'Current Package': 'Subscribe'}
                             </button>
                         </div>
 
